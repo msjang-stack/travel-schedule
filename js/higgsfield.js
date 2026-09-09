@@ -13,6 +13,8 @@ const HIGGSFIELD_IMAGES = {
   // gyeongju:  "assets/higgsfield/gyeongju.jpg",
   // gangneung: "assets/higgsfield/gangneung.jpg",
   // jeonju:    "assets/higgsfield/jeonju.jpg",
+  // yeosu:     "assets/higgsfield/yeosu.jpg",
+  // sokcho:    "assets/higgsfield/sokcho.jpg",
 };
 
 /* 내장 SVG 일러스트 — 각 지역의 대표 풍경을 단순한 도형으로 표현 */
@@ -113,6 +115,49 @@ const REGION_ART = {
     <g fill="#f2b96a">
       <circle cx="46" cy="152" r="3"/><circle cx="120" cy="156" r="3"/><circle cx="196" cy="152" r="3"/><circle cx="268" cy="156" r="3"/>
     </g>
+  </svg>`
+,
+  yeosu: `
+  <svg viewBox="0 0 320 180" role="img" aria-label="여수 — 밤바다와 해상케이블카">
+    <defs><linearGradient id="sk-ys" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#182447"/><stop offset="1" stop-color="#2c4a72"/>
+    </linearGradient></defs>
+    <rect width="320" height="180" fill="url(#sk-ys)"/>
+    <circle cx="272" cy="36" r="12" fill="#f2ead0"/>
+    <rect x="0" y="120" width="320" height="60" fill="#0e2740"/>
+    <line x1="0" y1="58" x2="320" y2="86" stroke="#9fb4c8" stroke-width="1.6" opacity="0.8"/>
+    <g fill="#e8734a">
+      <rect x="86" y="64" width="16" height="20" rx="3"/>
+      <rect x="196" y="74" width="16" height="20" rx="3"/>
+    </g>
+    <line x1="94" y1="58" x2="94" y2="66" stroke="#9fb4c8" stroke-width="1.6"/>
+    <line x1="204" y1="68" x2="204" y2="76" stroke="#9fb4c8" stroke-width="1.6"/>
+    <path d="M20 120 Q60 96 100 120" fill="none" stroke="#f0b45c" stroke-width="2.6"/>
+    <path d="M100 120 Q140 96 180 120" fill="none" stroke="#f0b45c" stroke-width="2.6"/>
+    <g stroke="#f0b45c" stroke-width="1.3" opacity="0.6">
+      <line x1="60" y1="132" x2="60" y2="146"/><line x1="140" y1="136" x2="140" y2="150"/><line x1="236" y1="130" x2="236" y2="142"/>
+    </g>
+    <circle cx="288" cy="128" r="2" fill="#f0b45c"/><circle cx="264" cy="136" r="2" fill="#f0b45c"/>
+  </svg>`,
+  sokcho: `
+  <svg viewBox="0 0 320 180" role="img" aria-label="속초 — 울산바위와 갯배">
+    <defs><linearGradient id="sk-sc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cddce3"/><stop offset="0.55" stop-color="#e9d9c0"/><stop offset="1" stop-color="#37697e"/>
+    </linearGradient></defs>
+    <rect width="320" height="180" fill="url(#sk-sc)"/>
+    <g fill="#7d8fa0">
+      <path d="M18 96 L44 34 L66 96 Z"/><path d="M58 96 L86 22 L112 96 Z"/><path d="M104 96 L128 40 L150 96 Z"/>
+    </g>
+    <g fill="#93a5b4">
+      <path d="M40 96 L58 52 L74 96 Z"/><path d="M84 96 L102 44 L118 96 Z"/>
+    </g>
+    <rect x="0" y="96" width="320" height="84" fill="#2d6076"/>
+    <rect x="196" y="104" width="76" height="14" rx="3" fill="#8a5a3b"/>
+    <rect x="222" y="92" width="10" height="12" fill="#5d3b26"/>
+    <line x1="150" y1="111" x2="318" y2="111" stroke="#d8cfb6" stroke-width="1.6" opacity="0.7"/>
+    <circle cx="282" cy="44" r="13" fill="#f6dcb0"/>
+    <path d="M148 60 q8 -8 16 0" stroke="#4b6b7a" stroke-width="2.2" fill="none"/>
+    <path d="M172 50 q8 -8 16 0" stroke="#4b6b7a" stroke-width="2.2" fill="none"/>
   </svg>`
 };
 

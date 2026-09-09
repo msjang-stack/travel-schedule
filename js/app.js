@@ -127,13 +127,46 @@ function renderRegions() {
     </button>`).join("");
 
   $$("#regionGrid .region-card").forEach((el) =>
-    el.addEventListener("click", () => {
-      state.regionId = el.dataset.region;
-      state.variant = 0;
-      renderOptions();
-      showStep(2);
-    })
+    el.addEventListener("click", () => selectRegion(el.dataset.region))
   );
+}
+
+function selectRegion(regionId) {
+  state.regionId = regionId;
+  state.variant = 0;
+  renderOptions();
+  showStep(2);
+}
+
+/* 지역 직접 선택 드롭다운: 코스 준비된 지역 + 준비 중 지역 */
+function renderRegionFinder() {
+  const sel = $("#regionSelect");
+  const ready = REGIONS.map((r) =>
+    `<option value="${r.id}">${r.name}</option>`).join("");
+  const coming = COMING_REGIONS.map((c, i) =>
+    `<option value="coming:${i}">${c.name} (준비 중)</option>`).join("");
+  sel.innerHTML = `
+    <option value="" selected>지역을 직접 선택하기…</option>
+    <optgroup label="코스 준비 완료">${ready}</optgroup>
+    <optgroup label="준비 중인 지역">${coming}</optgroup>`;
+
+  sel.addEventListener("change", () => {
+    const v = sel.value;
+    const hint = $("#finderHint");
+    if (!v) { hint.hidden = true; return; }
+    if (v.startsWith("coming:")) {
+      const c = COMING_REGIONS[+v.split(":")[1]];
+      const near = REGIONS.find((r) => r.id === c.near);
+      hint.innerHTML = `<b>${c.name}</b> 코스는 준비 중이에요. 지금은 가까운
+        <button type="button" data-near="${near.id}">${near.name} 코스 보기 →</button> 를 추천해요.`;
+      hint.hidden = false;
+      hint.querySelector("button").addEventListener("click", () => selectRegion(near.id));
+      return;
+    }
+    hint.hidden = true;
+    selectRegion(v);
+    sel.value = "";
+  });
 }
 
 /* ── 렌더: 2단계 조건 ── */
@@ -307,6 +340,7 @@ function showStep(n) {
 /* ── 초기화 ── */
 document.addEventListener("DOMContentLoaded", () => {
   renderRegions();
+  renderRegionFinder();
 
   $("#peopleMinus").addEventListener("click", () => {
     state.people = Math.max(1, state.people - 1);

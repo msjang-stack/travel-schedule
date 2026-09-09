@@ -161,6 +161,42 @@ button:focus-visible, [tabindex]:focus-visible {
 }
 .back-btn:hover { color: var(--accent); }
 
+/* ── 1단계: 지역 직접 선택 ── */
+.region-finder {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: -8px 0 24px;
+}
+.finder-label { font-size: 13.5px; font-weight: 700; color: var(--ink-soft); }
+.region-finder select {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 14px;
+  min-width: 220px;
+}
+.region-finder select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.finder-hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: var(--accent-soft);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.finder-hint button {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  padding: 0 2px;
+}
+
 /* ── 1단계: 지역 카드 ── */
 .region-grid {
   display: grid;
