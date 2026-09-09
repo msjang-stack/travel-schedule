@@ -355,7 +355,7 @@ button:focus-visible, [tabindex]:focus-visible {
 .day-pane.show { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 34px; align-items: start; }
 @media (max-width: 880px) {
   .day-pane.show { grid-template-columns: 1fr; }
-  .route-side { order: -1; }
+  .route-side { order: -1; position: static; }
 }
 
 .day-theme {
