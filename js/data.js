@@ -482,7 +482,7 @@ const REGIONS = [
         parking:{ ok:true, note:"항구 공영주차장" },
         ticket:null,
         wait:{ note:"횟집은 흥정 후 초장집 이동 방식 — 주말 점심 혼잡" } },
-      { id:"hyangho", name:"향호해변 BTS 버스정류장", cat:"spot", zone:2, slot:"pm", lat:37.8977, lng:128.8180, stay:40,
+      { id:"hyangho", name:"향호해변 BTS 버스정류장", cat:"spot", zone:2, slot:"am", lat:37.8977, lng:128.8180, stay:40,
         desc:"BTS 'You Never Walk Alone' 앨범 재킷 촬영지를 재현한 포토스팟.",
         fit:["friends","couple","solo"],
         parking:{ ok:true, note:"해변 무료 주차장" },
