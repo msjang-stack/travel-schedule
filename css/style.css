@@ -21,6 +21,9 @@
   --move: #8a9199;         /* 이동 구간 */
   --focus: #2c5d8f;
   --shadow: 0 10px 30px rgba(35, 47, 56, 0.08);
+  --map-bg: #e8eeec;       /* 동선 지도 바탕 */
+  --map-land: #dde7e0;     /* 지형 블롭 */
+  --map-grid: #cbd6d3;     /* 격자/외곽선 */
 }
 
 :root:not([data-theme="light"]) {
@@ -48,6 +51,9 @@
     --move: #6d7880;
     --focus: #7fb0dc;
     --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    --map-bg: #1a232b;
+    --map-land: #212d35;
+    --map-grid: #2e3c46;
   }
 }
 
@@ -71,6 +77,9 @@
   --move: #6d7880;
   --focus: #7fb0dc;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --map-bg: #1a232b;
+  --map-land: #212d35;
+  --map-grid: #2e3c46;
 }
 
 * { box-sizing: border-box; }
@@ -226,7 +235,17 @@ button:focus-visible, [tabindex]:focus-visible {
   overflow: hidden;
   background: var(--panel-2);
 }
-.region-art svg { width: 100%; height: 100%; display: block; }
+.region-art svg { width: 100%; height: 100%; display: block; transition: transform 0.4s ease; }
+.region-card:hover .region-art svg { transform: scale(1.04); }
+.region-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.14), transparent 55%),
+    radial-gradient(140% 110% at 50% 115%, rgba(0, 0, 0, 0.22), transparent 60%);
+  pointer-events: none;
+}
 .region-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .region-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 4px; }
 .region-name {
@@ -548,6 +567,27 @@ button:focus-visible, [tabindex]:focus-visible {
   color: var(--ink-soft);
 }
 .route-map svg { width: 100%; height: auto; display: block; }
+.route-map .map-halo { paint-order: stroke; stroke: var(--map-bg); stroke-width: 3px; }
+.route-map .route-dash { animation: route-flow 18s linear infinite; }
+@keyframes route-flow { to { stroke-dashoffset: -260; } }
+.map-legend {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+.map-legend .dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.map-legend .dot.spot { background: var(--spot); }
+.map-legend .dot.food { background: var(--food); }
+.map-legend .dot.cafe { background: var(--cafe); }
 .day-stats {
   background: var(--panel);
   border: 1px solid var(--line);

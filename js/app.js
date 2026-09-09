@@ -235,12 +235,45 @@ function moveHTML(leg) {
   </div>`;
 }
 
-function routeMapSVG(items) {
+/* 카테고리 글리프 (핀 안의 흰색 아이콘, 중심 0,0 기준) */
+const MAP_GLYPH = {
+  spot: `<path d="M0,-4.6 L1.4,-1.5 L4.6,-1.2 L2.2,1 L2.9,4.3 L0,2.5 L-2.9,4.3 L-2.2,1 L-4.6,-1.2 L-1.4,-1.5 Z" fill="#fff"/>`,
+  food: `<path d="M-2.2,-4.6 V-0.8 M0,-4.6 V-0.8 M2.2,-4.6 V-0.8 M0,-0.8 V4.6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" fill="none"/>`,
+  cafe: `<path d="M-3.2,-2.4 h5.4 v3.2 a2.7,2.7 0 0 1 -5.4,0 Z" fill="#fff"/>
+         <path d="M2.4,-1.6 h1.2 a1.7,1.7 0 0 1 0,3.4 h-0.9" stroke="#fff" stroke-width="1.3" fill="none"/>`
+};
+
+/* 문자열 기반 의사난수 — 지형 블롭 배치를 지역/날짜마다 고정 */
+function seededRand(seed) {
+  let h = 2166136261;
+  for (const c of seed) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822519);
+    h = Math.imul(h ^ (h >>> 13), 3266489917);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+
+/* Catmull-Rom → 부드러운 베지어 경로 */
+function smoothPath(pts) {
+  if (pts.length < 3)
+    return pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  let d = `M${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    d += ` C${(p1.x + (p2.x - p0.x) / 6).toFixed(1)} ${(p1.y + (p2.y - p0.y) / 6).toFixed(1)},` +
+         `${(p2.x - (p3.x - p1.x) / 6).toFixed(1)} ${(p2.y - (p3.y - p1.y) / 6).toFixed(1)},` +
+         `${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+
+function routeMapSVG(items, legs, seed) {
   if (items.length < 2) return "";
   const lats = items.map((p) => p.lat), lngs = items.map((p) => p.lng);
   const minLat = Math.min(...lats), maxLat = Math.max(...lats);
   const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-  const W = 312, H = 232, pad = 34;
+  const W = 320, H = 268, pad = 44;
   const latAdj = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
   const spanLng = Math.max((maxLng - minLng) * latAdj, 0.004);
   const spanLat = Math.max(maxLat - minLat, 0.004);
@@ -251,23 +284,90 @@ function routeMapSVG(items) {
     y: H - oy - (p.lat - minLat) * scale
   });
   const pts = items.map(pt);
-  const path = pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
 
+  /* 배경: 지형 블롭 + 격자 */
+  const rand = seededRand(seed || items.map((p) => p.id).join(""));
+  let terrain = "";
+  for (let i = 0; i < 5; i++) {
+    const cx = 20 + rand() * (W - 40), cy = 20 + rand() * (H - 40);
+    const rx = 34 + rand() * 60, ry = 22 + rand() * 40;
+    const rot = Math.round(rand() * 90 - 45);
+    terrain += `<ellipse cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" rx="${rx.toFixed(0)}" ry="${ry.toFixed(0)}"
+      transform="rotate(${rot} ${cx.toFixed(0)} ${cy.toFixed(0)})" fill="var(--map-land)"/>`;
+  }
+  let grid = "";
+  for (let x = 40; x < W; x += 56) grid += `<line x1="${x}" y1="0" x2="${x}" y2="${H}"/>`;
+  for (let y = 40; y < H; y += 56) grid += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`;
+
+  /* 축척바: 위도 1도 ≈ 111.32km → 40~92px 사이의 반올림 눈금 */
+  const pxPerKm = scale / 111.32;
+  let barKm = [0.5, 1, 2, 5, 10, 20].find((k) => k * pxPerKm >= 40 && k * pxPerKm <= 92);
+  if (!barKm) barKm = Math.max(0.5, Math.round(64 / pxPerKm));
+  const barPx = barKm * pxPerKm;
+  const scaleBar = `
+    <g stroke="var(--ink-soft)" stroke-width="1.4">
+      <line x1="14" y1="${H - 14}" x2="${(14 + barPx).toFixed(1)}" y2="${H - 14}"/>
+      <line x1="14" y1="${H - 18}" x2="14" y2="${H - 10}"/>
+      <line x1="${(14 + barPx).toFixed(1)}" y1="${H - 18}" x2="${(14 + barPx).toFixed(1)}" y2="${H - 10}"/>
+    </g>
+    <text x="${(14 + barPx / 2).toFixed(1)}" y="${H - 20}" text-anchor="middle" class="map-halo"
+      font-size="9" fill="var(--ink-soft)">${barKm < 1 ? barKm * 1000 + "m" : barKm + "km"}</text>`;
+
+  /* 나침반 */
+  const compass = `
+    <g transform="translate(${W - 22},24)">
+      <circle r="11" fill="var(--panel)" stroke="var(--map-grid)"/>
+      <path d="M0,-7 L2.8,4 L0,1.8 L-2.8,4 Z" fill="var(--accent)"/>
+      <text y="-13" text-anchor="middle" font-size="8.5" font-weight="700" fill="var(--ink-soft)">N</text>
+    </g>`;
+
+  /* 경로 + 구간 이동시간 라벨 */
+  const route = smoothPath(pts);
+  let legLabels = "";
+  if (legs) {
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1];
+      const segPx = Math.hypot(b.x - a.x, b.y - a.y);
+      if (!legs[i] || segPx < 46) continue;
+      legLabels += `<text x="${((a.x + b.x) / 2).toFixed(1)}" y="${((a.y + b.y) / 2 - 5).toFixed(1)}"
+        text-anchor="middle" font-size="8.5" font-weight="700" class="map-halo"
+        fill="var(--accent)">${legs[i].min}분</text>`;
+    }
+  }
+
+  /* 핀 마커: 카테고리색 원 + 흰 글리프 + 순번 배지 + 이름 라벨 */
   const nodes = pts.map((p, i) => {
+    const it = items[i];
     const above = i % 2 === 0 ? p.y > H * 0.2 : p.y > H * 0.85;
-    const name = items[i].name.length > 9 ? items[i].name.slice(0, 8) + "…" : items[i].name;
+    const name = it.name.length > 9 ? it.name.slice(0, 8) + "…" : it.name;
+    const color = `var(--${it.cat})`;
     return `
-      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="10" fill="var(--accent)"/>
-      <text x="${p.x.toFixed(1)}" y="${(p.y + 3.6).toFixed(1)}" text-anchor="middle"
-        font-size="10" font-weight="700" fill="var(--accent-ink)">${i + 1}</text>
-      <text x="${p.x.toFixed(1)}" y="${(above ? p.y - 15 : p.y + 22).toFixed(1)}" text-anchor="middle"
-        font-size="9.5" fill="var(--ink-soft)">${name}</text>`;
+      <g transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})">
+        <circle r="11.5" fill="${color}" stroke="var(--panel)" stroke-width="2"/>
+        <g>${MAP_GLYPH[it.cat] || MAP_GLYPH.spot}</g>
+        <circle cx="9.5" cy="-9.5" r="6.2" fill="var(--panel)" stroke="${color}" stroke-width="1.4"/>
+        <text x="9.5" y="-6.7" text-anchor="middle" font-size="8.5" font-weight="700"
+          fill="var(--ink)">${i + 1}</text>
+        <text y="${above ? -19 : 26}" text-anchor="middle" font-size="9.5" font-weight="500"
+          class="map-halo" fill="var(--ink)">${name}</text>
+      </g>`;
   }).join("");
 
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="하루 동선 지도">
-    <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2"
-      stroke-dasharray="5 5" stroke-linecap="round" opacity="0.65"/>
-    ${nodes}
+    <defs><clipPath id="mapclip"><rect width="${W}" height="${H}" rx="10"/></clipPath></defs>
+    <g clip-path="url(#mapclip)">
+      <rect width="${W}" height="${H}" fill="var(--map-bg)"/>
+      ${terrain}
+      <g stroke="var(--map-grid)" stroke-width="0.7" opacity="0.55">${grid}</g>
+      <path d="${route}" fill="none" stroke="var(--accent)" stroke-width="6" opacity="0.14" stroke-linecap="round"/>
+      <path d="${route}" fill="none" stroke="var(--accent)" stroke-width="2.2"
+        stroke-dasharray="7 6" stroke-linecap="round" class="route-dash"/>
+      ${legLabels}
+      ${nodes}
+      ${scaleBar}
+      ${compass}
+    </g>
+    <rect width="${W}" height="${H}" rx="10" fill="none" stroke="var(--map-grid)"/>
   </svg>`;
 }
 
@@ -309,7 +409,12 @@ function renderPlan() {
       <aside class="route-side">
         <div class="route-map">
           <h3>DAY ${di + 1} 동선 지도</h3>
-          ${routeMapSVG(day.items)}
+          ${routeMapSVG(day.items, day.legs, region.id + "-" + di)}
+          <div class="map-legend">
+            <span><i class="dot spot"></i>명소</span>
+            <span><i class="dot food"></i>맛집</span>
+            <span><i class="dot cafe"></i>카페</span>
+          </div>
         </div>
         <div class="day-stats">
           <div><div class="v">${day.items.length}</div><div class="k">방문 장소</div></div>
