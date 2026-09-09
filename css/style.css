@@ -355,7 +355,7 @@ button:focus-visible, [tabindex]:focus-visible {
 .day-pane.show { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 34px; align-items: start; }
 @media (max-width: 880px) {
   .day-pane.show { grid-template-columns: 1fr; }
-  .route-side { order: -1; position: static; }
+  .route-side { order: -1; }
 }
 
 .day-theme {
@@ -494,7 +494,10 @@ button:focus-visible, [tabindex]:focus-visible {
 .move-dist { font-variant-numeric: tabular-nums; }
 
 /* 동선 지도 */
-.route-side { position: sticky; top: 20px; display: grid; gap: 14px; }
+.route-side { display: grid; gap: 14px; }
+@media (min-width: 881px) {
+  .route-side { position: sticky; top: 20px; }
+}
 .route-map {
   background: var(--panel);
   border: 1px solid var(--line);
