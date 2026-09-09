@@ -1,0 +1,554 @@
+/* ── 길눈 · 국내 여행 동선 플래너 ─────────────────────────────
+   토큰: 쪽빛(전통 인디고) 악센트, 한지 느낌의 서늘한 종이색.
+   라이트 팔레트를 :root에 전부 선언하고, 다크는 토큰만 재정의한다. */
+
+:root {
+  --paper: #f4f3ee;        /* 종이 바탕 */
+  --panel: #fdfcf9;        /* 카드 표면 */
+  --panel-2: #ecebe4;      /* 살짝 가라앉은 면 */
+  --ink: #232f38;          /* 먹색 본문 */
+  --ink-soft: #5b6871;     /* 보조 텍스트 */
+  --line: #d8d6cc;         /* 경계선 */
+  --accent: #2c5d8f;       /* 쪽빛 */
+  --accent-ink: #ffffff;
+  --accent-soft: #e3ebf3;  /* 쪽빛 옅은 면 */
+  --spot: #2c5d8f;         /* 명소 */
+  --spot-bg: #e3ebf3;
+  --food: #b3502c;         /* 맛집 · 단청 주홍 */
+  --food-bg: #f6e7de;
+  --cafe: #77613f;         /* 카페 · 목재 갈색 */
+  --cafe-bg: #efe9dc;
+  --move: #8a9199;         /* 이동 구간 */
+  --focus: #2c5d8f;
+  --shadow: 0 10px 30px rgba(35, 47, 56, 0.08);
+}
+
+:root:not([data-theme="light"]) {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #14191f;
+    --panel: #1c232b;
+    --panel-2: #232b34;
+    --ink: #e6e8e3;
+    --ink-soft: #9aa5ac;
+    --line: #323c45;
+    --accent: #7fb0dc;
+    --accent-ink: #101820;
+    --accent-soft: #223448;
+    --spot: #7fb0dc;
+    --spot-bg: #223448;
+    --food: #e08b66;
+    --food-bg: #3a2a22;
+    --cafe: #c2a878;
+    --cafe-bg: #322b1f;
+    --move: #6d7880;
+    --focus: #7fb0dc;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #14191f;
+  --panel: #1c232b;
+  --panel-2: #232b34;
+  --ink: #e6e8e3;
+  --ink-soft: #9aa5ac;
+  --line: #323c45;
+  --accent: #7fb0dc;
+  --accent-ink: #101820;
+  --accent-soft: #223448;
+  --spot: #7fb0dc;
+  --spot-bg: #223448;
+  --food: #e08b66;
+  --food-bg: #3a2a22;
+  --cafe: #c2a878;
+  --cafe-bg: #322b1f;
+  --move: #6d7880;
+  --focus: #7fb0dc;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 96px; }
+
+a { color: var(--accent); }
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+button:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── 헤더 ── */
+.site-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 34px 0 10px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 34px;
+}
+.site-head .brand {
+  font-family: "Gowun Batang", "Noto Serif KR", serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.site-head .brand small {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-family: "Noto Sans KR", sans-serif;
+  font-weight: 400;
+  margin-left: 10px;
+  letter-spacing: 0;
+}
+.site-head .crumbs {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-soft);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.crumbs .on { color: var(--accent); font-weight: 700; }
+.crumbs .sep { opacity: 0.5; }
+
+/* ── 스텝 공통 ── */
+.step { display: none; }
+.step.show { display: block; }
+
+.step-title {
+  font-family: "Gowun Batang", "Noto Serif KR", serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+.step-sub { color: var(--ink-soft); margin: 0 0 26px; max-width: 62ch; }
+
+.back-btn {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 18px;
+  padding: 4px 0;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.back-btn:hover { color: var(--accent); }
+
+/* ── 1단계: 지역 카드 ── */
+.region-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 22px;
+}
+.region-card {
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 0;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  display: flex;
+  flex-direction: column;
+}
+.region-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+  border-color: var(--accent);
+}
+.region-art {
+  aspect-ratio: 16 / 9;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: var(--panel-2);
+}
+.region-art svg { width: 100%; height: 100%; display: block; }
+.region-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.region-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 4px; }
+.region-name {
+  font-family: "Gowun Batang", serif;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.region-name .en {
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 11px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+}
+.region-tag { color: var(--ink-soft); font-size: 13.5px; }
+.region-meta {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--accent);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.region-meta span {
+  background: var(--accent-soft);
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+
+/* ── 2단계: 조건 ── */
+.opt-region-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 26px;
+}
+.opt-region-banner .thumb {
+  width: 92px;
+  aspect-ratio: 16/9;
+  border-radius: 8px;
+  overflow: hidden;
+  flex: none;
+  background: var(--panel-2);
+}
+.opt-region-banner .thumb svg, .opt-region-banner .thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.opt-region-banner b { font-family: "Gowun Batang", serif; font-size: 18px; }
+.opt-region-banner .d { color: var(--ink-soft); font-size: 13px; }
+
+.opt-groups { display: grid; gap: 26px; max-width: 640px; }
+.opt-group legend, .opt-label {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+  display: block;
+}
+.opt-group { border: none; padding: 0; margin: 0; }
+.chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.chip {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 24px;
+  padding: 9px 20px;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+.chip small { display: block; font-size: 11px; color: var(--ink-soft); line-height: 1.3; }
+.chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.chip[aria-pressed="true"] small { color: var(--accent-ink); opacity: 0.8; }
+.chip:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.stepper button {
+  width: 44px;
+  height: 42px;
+  font-size: 20px;
+  color: var(--accent);
+}
+.stepper button:disabled { opacity: 0.3; cursor: not-allowed; }
+.stepper .num {
+  min-width: 72px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.go-btn {
+  margin-top: 34px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 14px 34px;
+  letter-spacing: 0.04em;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.go-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+
+/* ── 3단계: 일정 ── */
+.plan-head {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin-bottom: 8px;
+}
+.plan-head h2 {
+  font-family: "Gowun Batang", serif;
+  font-size: 26px;
+  margin: 0;
+  font-weight: 700;
+}
+.plan-summary { color: var(--ink-soft); font-size: 13.5px; }
+.plan-actions { margin-left: auto; display: flex; gap: 10px; }
+.ghost-btn {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+.ghost-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.day-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 22px 0 0;
+  border-bottom: 1px solid var(--line);
+}
+.day-tab {
+  padding: 10px 20px 11px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.day-tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+
+.day-pane { display: none; padding-top: 26px; }
+.day-pane.show { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 34px; align-items: start; }
+@media (max-width: 880px) {
+  .day-pane.show { grid-template-columns: 1fr; }
+  .route-side { order: -1; }
+}
+
+.day-theme {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: -6px 0 2px;
+}
+.day-theme b { color: var(--accent); font-weight: 700; }
+
+/* 타임라인 */
+.timeline { display: flex; flex-direction: column; }
+.tl-item {
+  position: relative;
+  padding-left: 58px;
+}
+.tl-item::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--line);
+}
+.tl-item:first-child::before { top: 14px; }
+.tl-item:last-child::before { bottom: auto; height: 14px; }
+.tl-dot {
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  z-index: 1;
+}
+.tl-item[data-cat="food"] .tl-dot { background: var(--food); color: #fff; }
+.tl-item[data-cat="cafe"] .tl-dot { background: var(--cafe); color: #fff; }
+:root[data-theme="dark"] .tl-item[data-cat="food"] .tl-dot,
+:root[data-theme="dark"] .tl-item[data-cat="cafe"] .tl-dot { color: #14191f; }
+
+.place-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 15px 18px 14px;
+  margin-bottom: 4px;
+}
+.place-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.place-name { font-weight: 700; font-size: 16.5px; font-family: "Gowun Batang", serif; }
+.slot-label { font-size: 12px; color: var(--ink-soft); letter-spacing: 0.06em; }
+.cat-chip {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 2px 8px;
+  letter-spacing: 0.08em;
+}
+.cat-chip.spot { background: var(--spot-bg); color: var(--spot); }
+.cat-chip.food { background: var(--food-bg); color: var(--food); }
+.cat-chip.cafe { background: var(--cafe-bg); color: var(--cafe); }
+.stay-chip { margin-left: auto; font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.place-desc { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-soft); max-width: 60ch; }
+
+.tips { margin-top: 12px; display: grid; gap: 6px; }
+.tip-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  font-size: 12.5px;
+  align-items: baseline;
+}
+.tip-key {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-align: center;
+  border-radius: 4px;
+  padding: 2px 0;
+  background: var(--panel-2);
+  color: var(--ink-soft);
+}
+.tip-key.warn { background: var(--food-bg); color: var(--food); }
+.tip-key.ok { background: var(--accent-soft); color: var(--accent); }
+.tip-val { color: var(--ink-soft); }
+
+/* 이동 구간 */
+.tl-move {
+  position: relative;
+  padding: 10px 0 10px 58px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--move);
+}
+.tl-move::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--line);
+}
+.tl-move::after {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  margin-top: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--move);
+  background: var(--paper);
+  box-sizing: border-box;
+}
+.move-mode {
+  font-weight: 700;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.move-mode svg { width: 14px; height: 14px; }
+.move-time { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
+.move-dist { font-variant-numeric: tabular-nums; }
+
+/* 동선 지도 */
+.route-side { position: sticky; top: 20px; display: grid; gap: 14px; }
+.route-map {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+}
+.route-map h3 {
+  margin: 2px 4px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.route-map svg { width: 100%; height: auto; display: block; }
+.day-stats {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  text-align: center;
+}
+.day-stats .v {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: "Gowun Batang", serif;
+  color: var(--accent);
+}
+.day-stats .k { font-size: 11px; color: var(--ink-soft); letter-spacing: 0.06em; }
+
+.notice {
+  margin-top: 40px;
+  padding: 14px 18px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  max-width: 72ch;
+}
+
+.site-foot {
+  margin-top: 56px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-soft);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
