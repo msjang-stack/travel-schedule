@@ -23,7 +23,8 @@ python3 -m http.server 8000
 # → http://localhost:8000
 ```
 
-GitHub Pages에 그대로 배포할 수 있습니다(Settings → Pages → 브랜치 루트 지정).
+배포: GitHub Actions 워크플로(`.github/workflows/deploy-pages.yml`)가 푸시 시 GitHub Pages로 자동 배포합니다.
+배포 주소: https://msjang-stack.github.io/travel-schedule/
 
 ## 구조
 
