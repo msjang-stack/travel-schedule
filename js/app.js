@@ -106,7 +106,10 @@ function buildPlan() {
   const days = Math.min(state.days, region.maxDays);
   const plan = [];
   for (let d = 0; d < days; d++) {
-    plan.push(buildDay(region, d % region.zones.length, state.variant));
+    /* "다르게 짜기"마다 권역 배치를 회전 — 하루짜리 여행은 다른 권역으로,
+       여러 날 여행은 날짜별 순서가 바뀌어 항상 눈에 보이는 변화가 생긴다 */
+    const zoneIdx = (d + state.variant) % region.zones.length;
+    plan.push(buildDay(region, zoneIdx, state.variant));
   }
   return { region, days, plan };
 }
