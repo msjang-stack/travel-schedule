@@ -412,7 +412,10 @@ function renderPlan() {
       <aside class="route-side">
         <div class="route-map">
           <h3>DAY ${di + 1} 동선 지도</h3>
-          ${routeMapSVG(day.items, day.legs, region.id + "-" + di)}
+          <button class="map-open3d" data-day="${di}" aria-label="DAY ${di + 1} 동선 3D로 재생">
+            ${routeMapSVG(day.items, day.legs, region.id + "-" + di)}
+            <span class="map-play"><span class="tri"></span>3D로 동선 따라가기</span>
+          </button>
           <div class="map-legend">
             <span><i class="dot spot"></i>명소</span>
             <span><i class="dot food"></i>맛집</span>
@@ -434,6 +437,11 @@ function renderPlan() {
       $$("#dayPanes .day-pane").forEach((p) =>
         p.classList.toggle("show", p.dataset.day === tab.dataset.day));
     })
+  );
+
+  $$(".map-open3d").forEach((btn) =>
+    btn.addEventListener("click", () =>
+      Map3D.open(region, plan[+btn.dataset.day], +btn.dataset.day))
   );
 }
 

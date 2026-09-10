@@ -570,6 +570,43 @@ button:focus-visible, [tabindex]:focus-visible {
 .route-map .map-halo { paint-order: stroke; stroke: var(--map-bg); stroke-width: 3px; }
 .route-map .route-dash { animation: route-flow 18s linear infinite; }
 @keyframes route-flow { to { stroke-dashoffset: -260; } }
+/* 지도 → 3D 재생 진입 */
+.map-open3d {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.map-open3d .map-play {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  transition: transform 0.16s ease;
+}
+.map-open3d:hover .map-play { transform: translateX(-50%) translateY(-2px); }
+.map-open3d .tri {
+  width: 0;
+  height: 0;
+  border-left: 7px solid currentColor;
+  border-top: 4.5px solid transparent;
+  border-bottom: 4.5px solid transparent;
+}
+
 .map-legend {
   display: flex;
   gap: 14px;
@@ -630,4 +667,145 @@ button:focus-visible, [tabindex]:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
+}
+
+/* ── 3D 동선 맵 오버레이 ── */
+.m3-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--paper);
+  overflow: hidden;
+}
+.m3-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+.m3-canvas:active { cursor: grabbing; }
+
+.m3-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.34), transparent);
+  pointer-events: none;
+}
+.m3-title {
+  font-family: "Gowun Batang", serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+.m3-close {
+  margin-left: auto;
+  pointer-events: auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  backdrop-filter: blur(6px);
+}
+.m3-close:hover { background: rgba(0, 0, 0, 0.62); }
+
+.m3-status {
+  position: absolute;
+  top: 54px;
+  left: 16px;
+  right: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.m3-card {
+  position: absolute;
+  top: 84px;
+  right: 16px;
+  width: min(340px, calc(100% - 32px));
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 13px 15px;
+  box-shadow: var(--shadow);
+  animation: m3-in 0.26s ease;
+}
+@keyframes m3-in { from { opacity: 0; transform: translateY(-6px); } }
+.m3-card-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.m3-card-top b { font-family: "Gowun Batang", serif; font-size: 16px; }
+.m3-stay { margin-left: auto; font-size: 12px; color: var(--ink-soft); }
+.m3-card-desc { margin: 6px 0 0; font-size: 13px; color: var(--ink-soft); }
+
+.m3-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18px 16px 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.42), transparent);
+  display: grid;
+  gap: 10px;
+}
+.m3-bar {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+}
+.m3-bar-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.1s linear;
+}
+.m3-btns { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.m3-btns button {
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 8px 14px;
+  backdrop-filter: blur(6px);
+}
+.m3-btns button:hover { background: rgba(0, 0, 0, 0.62); }
+.m3-hint {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 700px) {
+  .m3-card {
+    top: auto;
+    bottom: 104px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
+  .m3-hint { display: none; }
 }
