@@ -809,3 +809,33 @@ button:focus-visible, [tabindex]:focus-visible {
   }
   .m3-hint { display: none; }
 }
+
+/* 3D 맵 — 모바일 이동 조이스틱 */
+.m3-stick {
+  position: absolute;
+  left: 18px;
+  bottom: 96px;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  backdrop-filter: blur(5px);
+  display: none;
+  touch-action: none;
+}
+.m3-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+@media (pointer: coarse) {
+  .m3-stick { display: block; }
+  .m3-card { bottom: 124px; }
+}
