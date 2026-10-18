@@ -677,16 +677,28 @@ button:focus-visible, [tabindex]:focus-visible {
   background: var(--paper);
   overflow: hidden;
 }
-.m3-canvas {
+.m3-holder {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  touch-action: none;
+  overflow: hidden;
   cursor: grab;
 }
-.m3-canvas:active { cursor: grabbing; }
+.m3-holder:active { cursor: grabbing; }
+.m3-holder canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.m3-note {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 300px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-soft);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
 
 .m3-top {
   position: absolute;
@@ -800,6 +812,8 @@ button:focus-visible, [tabindex]:focus-visible {
 }
 
 @media (max-width: 700px) {
+  .m3-title { font-size: 15px; }
+  .m3-status { top: 50px; font-size: 12px; line-height: 1.45; }
   .m3-card {
     top: auto;
     bottom: 104px;
