@@ -4,7 +4,8 @@
    측량용이 아니다(수백 m 단위 오차 포함).
 
    water 항목
-     { type:"sea",    ring:[[lat,lng]...], coast:n }  앞 n개가 실제 해안선
+     { type:"sea",    ring:[[lat,lng]...], coast:n, holes:[[[lat,lng]...]] }
+                                                     앞 n개가 실제 해안선, holes 는 바다 속 섬
      { type:"island", ring:[[lat,lng]...] }           링 바깥이 전부 바다
      { type:"river",  center:[[lat,lng]...], width:m }
      { type:"lake",   ring:[[lat,lng]...] }
@@ -164,6 +165,110 @@ const REGION_TERRAIN = {
       { lat: 38.1190, lng: 128.4650, r: 3800, h: 1500, name: "대청봉" },
       { lat: 38.2300, lng: 128.4900, r: 2200, h: 700, name: "신선봉 줄기" }
     ]
+  },
+
+  /* 통영 — 반도와 미륵도가 붙어 있고 사방이 한려수도 */
+  tongyeong: {
+    water: [{
+      type: "island",
+      ring: [
+        [34.908, 128.392], [34.886, 128.452], [34.864, 128.480], [34.846, 128.474],
+        [34.836, 128.462], [34.820, 128.458], [34.800, 128.452], [34.784, 128.428],
+        [34.776, 128.398], [34.786, 128.372], [34.806, 128.362], [34.830, 128.368],
+        [34.846, 128.386], [34.858, 128.372], [34.878, 128.362], [34.896, 128.374]
+      ]
+    }],
+    hills: [
+      { lat: 34.8270, lng: 128.4310, r: 1300, h: 461, name: "미륵산" },
+      { lat: 34.8442, lng: 128.4292, r: 420, h: 72, name: "남망산" },
+      { lat: 34.8900, lng: 128.4200, r: 1900, h: 650, name: "벽방산" },
+      { lat: 34.7950, lng: 128.3900, r: 900, h: 290, name: "달아 능선" }
+    ]
+  },
+
+  /* 춘천·가평 — 의암호와 소양호, 그 사이를 흐르는 북한강 */
+  chuncheon: {
+    water: [
+      { type: "lake", ring: ring(37.8620, 127.7150, 2400, 3400) },
+      { type: "lake", ring: ring(37.9480, 127.8300, 4200, 2600) },
+      {
+        type: "river", width: 700,
+        center: [[37.884, 127.668], [37.848, 127.614], [37.816, 127.566],
+                 [37.786, 127.534], [37.752, 127.552], [37.716, 127.586]]
+      }
+    ],
+    hills: [
+      { lat: 37.8530, lng: 127.6600, r: 1600, h: 654, name: "삼악산" },
+      { lat: 37.9900, lng: 127.8500, r: 2200, h: 779, name: "오봉산" },
+      { lat: 37.7400, lng: 127.3900, r: 2600, h: 886, name: "축령산" },
+      { lat: 37.7600, lng: 127.4700, r: 1900, h: 632, name: "호명산" },
+      { lat: 37.9050, lng: 127.7050, r: 1400, h: 436, name: "대룡산 줄기" }
+    ]
+  },
+
+  /* 안동 — 낙동강이 하회마을을 휘감고 북쪽에 안동호 */
+  andong: {
+    water: [
+      {
+        type: "river", width: 300,
+        center: [[36.516, 128.472], [36.534, 128.504], [36.548, 128.528],
+                 [36.540, 128.556], [36.548, 128.604], [36.556, 128.666],
+                 [36.562, 128.712], [36.570, 128.756], [36.578, 128.800]]
+      },
+      { type: "lake", ring: ring(36.6050, 128.8200, 5200, 3000) }
+    ],
+    hills: [
+      { lat: 36.5430, lng: 128.5190, r: 420, h: 64, name: "부용대" },
+      { lat: 36.5760, lng: 128.7220, r: 1300, h: 250, name: "영남산" },
+      { lat: 36.6700, lng: 128.6300, r: 3100, h: 882, name: "학가산" },
+      { lat: 36.4650, lng: 128.7820, r: 1500, h: 480, name: "만휴정 뒷산" }
+    ]
+  },
+
+  /* 포항 — 영일만을 끼고 호미곶 반도가 바다로 뻗는다 */
+  pohang: {
+    water: [{
+      type: "sea", coast: 14,
+      ring: [
+        [36.236, 129.368], [36.196, 129.384], [36.146, 129.392], [36.112, 129.390],
+        [36.082, 129.390], [36.060, 129.383], [36.040, 129.392], [36.022, 129.424],
+        [36.010, 129.482], [36.040, 129.544], [36.076, 129.570], [36.032, 129.592],
+        [35.990, 129.560], [35.944, 129.546],
+        [35.700, 130.400], [36.420, 130.400]
+      ]
+    }],
+    hills: [
+      { lat: 36.2600, lng: 129.3300, r: 3200, h: 710, name: "내연산" },
+      { lat: 36.0100, lng: 129.3200, r: 2200, h: 482, name: "운제산" },
+      { lat: 36.0570, lng: 129.3880, r: 500, h: 100, name: "환호 언덕" },
+      { lat: 35.9800, lng: 129.4700, r: 1600, h: 360, name: "호미반도 능선" }
+    ]
+  },
+
+  /* 인천·강화 — 서쪽이 서해, 그 안에 강화도와 영종도 */
+  incheon: {
+    water: [{
+      type: "sea", coast: 9,
+      holes: [
+        [[37.796, 126.486], [37.766, 126.562], [37.706, 126.596], [37.646, 126.574],
+         [37.594, 126.532], [37.580, 126.458], [37.620, 126.398], [37.682, 126.378],
+         [37.744, 126.402]],
+        [[37.544, 126.482], [37.522, 126.562], [37.480, 126.584], [37.448, 126.530],
+         [37.462, 126.458], [37.512, 126.438]]
+      ],
+      ring: [
+        [37.602, 126.620], [37.560, 126.596], [37.520, 126.602], [37.490, 126.606],
+        [37.474, 126.592], [37.464, 126.612], [37.438, 126.622], [37.400, 126.632],
+        [37.364, 126.644],
+        [37.100, 125.700], [37.980, 125.700]
+      ]
+    }],
+    hills: [
+      { lat: 37.6110, lng: 126.4380, r: 2000, h: 472, name: "마니산" },
+      { lat: 37.7300, lng: 126.4900, r: 1600, h: 316, name: "고려산" },
+      { lat: 37.4730, lng: 126.6200, r: 450, h: 69, name: "자유공원 언덕" },
+      { lat: 37.4300, lng: 126.7600, r: 2200, h: 302, name: "소래·관모산" }
+    ]
   }
 };
 
@@ -205,6 +310,33 @@ const PLACE_TERRAIN = {
   bukchon: "heritage", namsangol: "heritage", ikseon: "heritage",
   daereungwon: "heritage", cheomseongdae: "heritage", omokdae: "heritage",
   jeondong: "heritage", hwangridan: "heritage", jaman: "heritage",
+  /* 통영 */
+  dongpirang: "mountain", tongyeong_cable: "mountain", luge: "mountain",
+  dalah: "park", dipirang: "park", haejeo: "port", gangguan: "port",
+  jungang_ty: "market", seoho: "market", ddungbo: "urban", omisa: "urban",
+  /* 춘천·가평 */
+  soyang_sky: "water", soyangdam: "water", gongjicheon: "park",
+  namiseom: "park", jaraseom: "park", gamjabat: "park", legoland: "park",
+  petitefrance: "heritage", achim: "park", railbike: "water",
+  /* 안동 */
+  hahoe: "heritage", buyongdae: "mountain", mansujeong: "mountain",
+  wolyeonggyo: "water", folk: "heritage", hahoe_market: "market",
+  /* 포항 */
+  spacewalk: "mountain", pohang_canal: "water", homigot: "beach",
+  guryongpo: "port", camellia: "port", igari: "beach", yeongildae_cafe: "beach",
+  /* 인천·강화 */
+  wolmido: "port", gwangseongbo: "heritage", seokmodo: "beach",
+  namdaemun: "market", myeongdong_cath: "heritage", orangdae: "beach",
+  sodol: "beach", bohemian: "beach", homibando: "beach", yisunsin: "park",
+  ty_cafe: "urban", dachi: "port", gapyeong_cafe: "water", nami_food: "port",
+  byeongsan: "heritage", dosan: "heritage", kkachi: "urban", iljik: "urban",
+  jjimdak: "market", mammoth: "urban", hahoe_cafe: "heritage",
+  yeongildae: "beach", jukdo: "market", mulhoe: "beach",
+  guryongpo_food: "port", guryongpo_sikdang: "port",
+  gaehangjang: "urban", sinpo: "market", potal: "urban", sinseung: "urban",
+  jeondeungsa: "heritage", joyang: "urban", ganghwa_market: "market",
+  dongmak: "beach", ganghwa_dinner: "urban",
+  chinatown: "urban", donghwa: "urban",
   gwangjang: "market", gukje: "market", nambu: "market", jungang: "market",
   jungangsijang: "market", ojukheon: "heritage", leesunsin: "port"
 };

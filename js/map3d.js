@@ -34,6 +34,7 @@ const Map3D = (function () {
     ground: 0xb8c6ac, groundAlt: 0xaebda2, road: 0xa9b1ab, roadLine: 0xcdd3c9,
     sea: 0x2f7593, lake: 0x3a7d94, sand: 0xcfbc8d, bank: 0x9db384,
     hill: 0x6f8a62, hillTop: 0x87a06f,
+    field: [0x93aa6a, 0xa6b472, 0xbfae7e, 0x879d60],
     foliage: 0x3f6b3c, foliage2: 0x568046, trunk: 0x6f5a46,
     walls: [0xc9c2b2, 0xb5bab6, 0xc0b3a2, 0xa8b4bc, 0xcab9a2, 0xbcbdb0, 0xaea79d],
     roofs: [0x77726a, 0x6f7c84, 0x8a7162, 0x636b74],
@@ -53,6 +54,7 @@ const Map3D = (function () {
     ground: 0x2b353f, groundAlt: 0x27313b, road: 0x39434e, roadLine: 0x4b5663,
     sea: 0x1b3c59, lake: 0x1d4055, sand: 0x4a473d, bank: 0x33402f,
     hill: 0x2b3a33, hillTop: 0x36473b,
+    field: [0x2c3a2a, 0x33402c, 0x3a3a2e, 0x293527],
     foliage: 0x27402f, foliage2: 0x314e38, trunk: 0x2c2620,
     walls: [0x3a444f, 0x333e4a, 0x404853, 0x2f3944, 0x3c424c, 0x363f49, 0x2c353f],
     roofs: [0x242c35, 0x28313a, 0x202831, 0x1e252d],
@@ -335,14 +337,21 @@ const Map3D = (function () {
         shores.push({ pts: ring.concat([ring[0]]), kind: "sea" });
       } else {
         const ring = w.ring.map(([la, ln]) => geo(la, ln));
-        water.push({ ring, kind: w.type });
+        const holes = (w.holes || []).map((h) => h.map(([la, ln]) => geo(la, ln)));
+        water.push({ ring, holes, kind: w.type });
         shores.push({ pts: ring.slice(0, w.coast || ring.length), kind: w.type });
+        for (const h of holes) shores.push({ pts: h.concat([h[0]]), kind: w.type });
       }
     }
     const isWater = (x, z) => {
       for (const w of water) {
         if (w.island) { if (!pointInPoly(x, z, w.ring)) return true; }
-        else if (pointInPoly(x, z, w.ring)) return true;
+        else if (pointInPoly(x, z, w.ring)) {
+          let onIsland = false;
+          for (const h of (w.holes || []))
+            if (pointInPoly(x, z, h)) { onIsland = true; break; }
+          if (!onIsland) return true;
+        }
       }
       return false;
     };
@@ -426,7 +435,8 @@ const Map3D = (function () {
     }
 
     /* 건물 */
-    const buildings = [], props = [];
+    const buildings = [], props = [], fields = [];
+    const urb = region.urbanity === undefined ? 0.8 : region.urbanity;
     const nearNode = (x, z) => {
       let best = nodes[0], bd = Infinity;
       for (const n of nodes) {
@@ -458,16 +468,32 @@ const Map3D = (function () {
           for (const b2 of buildings)
             if (Math.hypot(bx - b2.x, bz - b2.z) < 8) { tooClose = true; break; }
           if (tooClose) continue;
-          if (rand() < 0.12 + 0.3 * (rad / half)) continue;
-
           const ctx2 = near.n.terrain, core = 1 - Math.min(1, rad / half);
+          /* 시골일수록 비우고, 빈 땅에는 논밭을 깐다 */
+          const rural = ctx2 === "heritage" || ctx2 === "park" || ctx2 === "mountain";
+          const skipP = 0.1 + 0.28 * (rad / half) + (1 - urb) * 0.46 + (rural ? 0.12 : 0);
+          if (rand() < skipP) {
+            if (urb < 0.65 && rand() < 0.68)
+              fields.push({ x: bx, z: bz, w: 11 + rand() * 9, d: 10 + rand() * 9,
+                            rot: gridRot + (rand() - 0.5) * 0.2,
+                            ci: Math.floor(rand() * 4), gy: groundY(bx, bz) });
+            continue;
+          }
           let kinds;
           if (ctx2 === "beach" || ctx2 === "port")
-            kinds = sd < 34 ? ["lowrise", "gable", "shop", "villa"] : ["block", "lowrise", "gable", "shop", "slab"];
-          else if (ctx2 === "heritage") kinds = ["hanok", "hanok", "lowrise", "shop", "block"];
-          else if (ctx2 === "mountain" || ctx2 === "park") kinds = ["villa", "gable", "lowrise", "hanok"];
+            kinds = sd < 34 ? ["lowrise", "gable", "shop", "villa"]
+                            : (urb > 0.7 ? ["block", "lowrise", "gable", "shop", "slab"]
+                                         : ["lowrise", "gable", "villa", "shop"]);
+          else if (ctx2 === "heritage")
+            kinds = urb < 0.58 ? ["hanok", "hanok", "hanok", "gable", "lowrise"]
+                               : ["hanok", "hanok", "lowrise", "shop", "block"];
+          else if (ctx2 === "mountain" || ctx2 === "park")
+            kinds = urb < 0.58 ? ["gable", "villa", "hanok", "gable"]
+                               : ["villa", "gable", "lowrise", "hanok"];
           else if (ctx2 === "market") kinds = ["shop", "shop", "lowrise", "block"];
-          else kinds = ["block", "slab", "tower", "lowrise", "block", "shop"];
+          else kinds = urb > 0.72 ? ["block", "slab", "tower", "lowrise", "block", "shop"]
+                                  : (urb > 0.5 ? ["block", "lowrise", "gable", "shop", "villa"]
+                                               : ["lowrise", "gable", "villa", "shop", "hanok"]);
           const kind = kinds[Math.floor(rand() * kinds.length)];
 
           let w = 6 + rand() * 5, d = 6 + rand() * 5, h;
@@ -482,7 +508,10 @@ const Map3D = (function () {
             default: h = 4.6 + rand() * 2.6;
           }
           if (ctx2 === "beach" || ctx2 === "port") h = Math.min(h, sd < 40 ? 9 + rand() * 7 : 15 + rand() * 9);
-          if (ctx2 === "heritage" || ctx2 === "park" || ctx2 === "mountain") h = Math.min(h, 13 + rand() * 7);
+          if (rural) h = Math.min(h, 13 + rand() * 7);
+          if (kind === "tower" || kind === "slab" || kind === "block")
+            h *= 0.5 + 0.5 * urb;
+          h = Math.max(3.2, h);
 
           const isHanok = kind === "hanok";
           buildings.push({
@@ -568,7 +597,7 @@ const Map3D = (function () {
     for (let i = 0; i < nodes.length - 1; i++)
       cum.push(cum[i] + Math.hypot(nodes[i + 1].x - nodes[i].x, nodes[i + 1].z - nodes[i].z));
 
-    return { region, day, dayIndex, nodes, legs, buildings, props, roads, hills,
+    return { region, day, dayIndex, nodes, legs, buildings, props, fields, roads, hills,
              water, shores, cum, half, lmk, gridRot, groundY, isWater, shoreDist, scale: sc };
   }
 
@@ -696,6 +725,25 @@ const Map3D = (function () {
       addFlatQuad(B, { x: a.x + cx, z: a.z + cz }, { x: b.x + cx, z: b.z + cz },
                   { x: b.x - cx, z: b.z - cz }, { x: a.x - cx, z: a.z - cz }, y + 0.01, pal.roadLine);
     }
+    /* 논밭 */
+    for (const fl of (S.fields || [])) {
+      const cs = cornersOf(fl.x, fl.z, fl.w, fl.d, fl.rot);
+      const hex = pal.field[fl.ci % pal.field.length];
+      addFlatQuad(B, cs[0], cs[1], cs[2], cs[3], fl.gy + 0.04, hex);
+      const n = 4;
+      for (let i = 1; i < n; i++) {
+        const t = i / n;
+        const a = { x: cs[0].x + (cs[3].x - cs[0].x) * t, z: cs[0].z + (cs[3].z - cs[0].z) * t };
+        const b2 = { x: cs[1].x + (cs[2].x - cs[1].x) * t, z: cs[1].z + (cs[2].z - cs[1].z) * t };
+        let dx = b2.x - a.x, dz = b2.z - a.z;
+        const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L;
+        const nx = -dz * 0.22, nz = dx * 0.22;
+        addFlatQuad(B, { x: a.x + nx, z: a.z + nz }, { x: b2.x + nx, z: b2.z + nz },
+                    { x: b2.x - nx, z: b2.z - nz }, { x: a.x - nx, z: a.z - nz },
+                    fl.gy + 0.05, pal.field[(fl.ci + 2) % pal.field.length]);
+      }
+    }
+
     /* 장소 바닥 원 */
     for (const n of S.nodes) {
       const pts = [];
@@ -725,7 +773,8 @@ const Map3D = (function () {
         addPolygon(B, [{ x: -R, z: -R }, { x: R, z: -R }, { x: R, z: R }, { x: -R, z: R }],
                    [w.ring.slice().reverse()], 0.1, w.kind === "sea" ? pal.sea : pal.lake, 0.05);
       } else {
-        addPolygon(B, w.ring, [], 0.1, w.kind === "sea" ? pal.sea : pal.lake, 0.05);
+        addPolygon(B, w.ring, (w.holes || []).map((h) => h.slice().reverse()), 0.1,
+                   w.kind === "sea" ? pal.sea : pal.lake, 0.05);
       }
       if (!B.p.length) continue;
       const mat = new THREE.MeshStandardMaterial({
